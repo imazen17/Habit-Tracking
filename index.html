@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Habit Tracker</title>
+    <style>
+        /* General Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+            transition: background-color 0.3s ease, color 0.3s ease;
+            overflow-x: hidden; /* Prevent horizontal overflow */
+        }
+
+        body.dark-mode {
+            background-color: #121212;
+            color: #ffffff;
+        }
+
+        .container {
+            background-color: var(--bg-color);
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 800px;
+            animation: fadeIn 0.5s ease-in-out;
+            transition: background-color 0.3s ease, color 0.3s ease;
+            overflow: hidden; /* Prevent container overflow */
+        }
+
+        body.dark-mode .container {
+            background-color: #1e1e1e;
+            color: #ffffff;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 1.5rem;
+            color: var(--primary-color);
+            text-align: center;
+        }
+
+        .input-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr auto;
+            gap: 10px;
+            margin-bottom: 1.5rem;
+        }
+
+        @media (max-width: 768px) {
+            .input-group {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .input-group {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        input[type="text"], input[type="number"], select {
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 1rem;
+            outline: none;
+            transition: border-color 0.3s ease;
+            background-color: var(--input-bg-color);
+            color: var(--text-color);
+            width: 100%; /* Ensure inputs don't overflow */
+        }
+
+        input[type="text"]:focus, input[type="number"]:focus, select:focus {
+            border-color: var(--primary-color);
+        }
+
+        button {
+            padding: 10px 20px;
+            background-color: var(--primary-color);
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background-color 0.3s ease;
+            width: 100%; /* Ensure buttons don't overflow */
+        }
+
+        button:hover {
+            background-color: var(--primary-hover-color);
+        }
+
+        ul {
+            list-style-type: none;
+            margin-top: 1.5rem;
+            padding: 0;
+        }
+
+        li {
+            background-color: var(--item-bg-color);
+            padding: 1rem;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            animation: slideIn 0.3s ease-in-out;
+            transition: transform 0.3s ease;
+            flex-wrap: wrap; /* Allow wrapping on small screens */
+        }
+
+        li:hover {
+            transform: translateY(-5px);
+        }
+
+        .habit-info {
+            flex: 1;
+            margin-right: 10px;
+            min-width: 150px; /* Ensure minimum width for habit info */
+        }
+
+        .habit-name {
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 10px;
+            background-color: var(--progress-bg-color);
+            border-radius: 5px;
+            margin-top: 5px;
+            overflow: hidden;
+        }
+
+        .progress {
+            height: 100%;
+            background-color: var(--primary-color);
+            width: 0;
+            transition: width 0.3s ease;
+        }
+
+        .buttons {
+            display: flex;
+            gap: 5px;
+            flex-wrap: wrap; /* Allow buttons to wrap on small screens */
+        }
+
+        .buttons button {
+            padding: 5px 10px;
+            font-size: 0.9rem;
+            flex: 1; /* Ensure buttons take equal space */
+        }
+
+        .delete-btn {
+            background-color: #dc3545;
+        }
+
+        .delete-btn:hover {
+            background-color: #c82333;
+        }
+
+        .filter-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 1.5rem;
+            flex-wrap: wrap; /* Allow buttons to wrap on small screens */
+        }
+
+        @media (max-width: 480px) {
+            .filter-buttons {
+                flex-direction: column;
+            }
+
+            .filter-buttons button {
+                width: 100%;
+            }
+        }
+
+        .filter-buttons button {
+            background-color: #6c757d;
+        }
+
+        .filter-buttons button:hover {
+            background-color: #5a6268;
+        }
+
+        .completed {
+            text-decoration: line-through;
+            color: #6c757d;
+        }
+
+        .mode-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background-color: var(--primary-color);
+            color: #fff;
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.2rem;
+            transition: background-color 0.3s ease;
+        }
+
+        .mode-toggle:hover {
+            background-color: var(--primary-hover-color);
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(-20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        /* CSS Variables for Light Mode */
+        :root {
+            --primary-color: #28a745;
+            --primary-hover-color: #218838;
+            --bg-color: #fff;
+            --item-bg-color: #f8f9fa;
+            --progress-bg-color: #e9ecef;
+            --border-color: #ddd;
+            --input-bg-color: #fff;
+            --text-color: #333;
+        }
+
+        /* CSS Variables for Dark Mode */
+        body.dark-mode {
+            --primary-color: #4caf50;
+            --primary-hover-color: #45a049;
+            --bg-color: #1e1e1e;
+            --item-bg-color: #2d2d2d;
+            --progress-bg-color: #3d3d3d;
+            --border-color: #444;
+            --input-bg-color: #2d2d2d;
+            --text-color: #ffffff;
+        }
+    </style>
+</head>
+<body>
+    <button class="mode-toggle" onclick="toggleMode()">🌙</button>
+    <div class="container">
+        <h1>Habit Tracker</h1>
+        <div class="input-group">
+            <input type="text" id="habitInput" placeholder="Enter a new habit">
+            <input type="number" id="habitTarget" placeholder="Target (e.g., 5)" min="1">
+            <select id="measurementType">
+                <option value="times">Times</option>
+                <option value="km">Kilometers</option>
+                <option value="minutes">Minutes</option>
+                <option value="liters">Liters</option>
+            </select>
+            <button onclick="addHabit()">Add Habit</button>
+        </div>
+        <ul id="habitList"></ul>
+        <div class="filter-buttons">
+            <button onclick="filterHabits('all')">Show All</button>
+            <button onclick="filterHabits('completed')">Show Completed</button>
+            <button onclick="filterHabits('incomplete')">Show Incomplete</button>
+        </div>
+    </div>
+
+    <script>
+        let habits = JSON.parse(localStorage.getItem('habits')) || [];
+        let darkMode = localStorage.getItem('darkMode') === 'true';
+
+        // Apply dark mode if enabled
+        if (darkMode) {
+            document.body.classList.add('dark-mode');
+        }
+
+        // Function to toggle dark/light mode
+        function toggleMode() {
+            document.body.classList.toggle('dark-mode');
+            darkMode = !darkMode;
+            localStorage.setItem('darkMode', darkMode);
+        }
+
+        // Function to render habits
+        function renderHabits(filter = 'all') {
+            const habitList = document.getElementById('habitList');
+            habitList.innerHTML = '';
+
+            const filteredHabits = habits.filter(habit => {
+                if (filter === 'completed') return habit.completed;
+                if (filter === 'incomplete') return !habit.completed;
+                return true; // Show all
+            });
+
+            filteredHabits.forEach((habit, index) => {
+                const li = document.createElement('li');
+                li.className = habit.completed ? 'completed' : '';
+
+                // Habit info
+                const habitInfo = document.createElement('div');
+                habitInfo.className = 'habit-info';
+                const habitName = document.createElement('div');
+                habitName.className = 'habit-name';
+                habitName.textContent = `${habit.name} (${habit.current}/${habit.target} ${habit.measurement})`;
+                habitInfo.appendChild(habitName);
+
+                // Progress bar
+                const progressBar = document.createElement('div');
+                progressBar.className = 'progress-bar';
+                const progress = document.createElement('div');
+                progress.className = 'progress';
+                progress.style.width = `${(habit.current / habit.target) * 100}%`;
+                progressBar.appendChild(progress);
+                habitInfo.appendChild(progressBar);
+
+                li.appendChild(habitInfo);
+
+                // Buttons
+                const buttons = document.createElement('div');
+                buttons.className = 'buttons';
+                const incrementBtn = document.createElement('button');
+                incrementBtn.textContent = '+';
+                incrementBtn.onclick = () => updateProgress(index, 1);
+                buttons.appendChild(incrementBtn);
+
+                const decrementBtn = document.createElement('button');
+                decrementBtn.textContent = '-';
+                decrementBtn.onclick = () => updateProgress(index, -1);
+                buttons.appendChild(decrementBtn);
+
+                const deleteBtn = document.createElement('button');
+                deleteBtn.textContent = 'Delete';
+                deleteBtn.className = 'delete-btn';
+                deleteBtn.onclick = () => deleteHabit(index);
+                buttons.appendChild(deleteBtn);
+
+                li.appendChild(buttons);
+                habitList.appendChild(li);
+            });
+        }
+
+        // Function to add a new habit
+        function addHabit() {
+            const habitInput = document.getElementById('habitInput');
+            const habitTarget = document.getElementById('habitTarget');
+            const measurementType = document.getElementById('measurementType');
+            const name = habitInput.value.trim();
+            const target = parseInt(habitTarget.value);
+            const measurement = measurementType.value;
+
+            if (name === '' || isNaN(target) || target < 1) {
+                alert('Please enter a valid habit and target!');
+                return;
+            }
+
+            habits.push({ name, target, current: 0, measurement, completed: false });
+            localStorage.setItem('habits', JSON.stringify(habits));
+            habitInput.value = '';
+            habitTarget.value = '';
+            renderHabits();
+        }
+
+        // Function to update progress
+        function updateProgress(index, amount) {
+            habits[index].current += amount;
+            if (habits[index].current < 0) habits[index].current = 0;
+            if (habits[index].current >= habits[index].target) {
+                habits[index].completed = true;
+            } else {
+                habits[index].completed = false;
+            }
+            localStorage.setItem('habits', JSON.stringify(habits));
+            renderHabits();
+        }
+
+        // Function to delete a habit
+        function deleteHabit(index) {
+            habits.splice(index, 1);
+            localStorage.setItem('habits', JSON.stringify(habits));
+            renderHabits();
+        }
+
+        // Function to filter habits
+        function filterHabits(filter) {
+            renderHabits(filter);
+        }
+
+        // Initial render
+        renderHabits();
+    </script>
+</body>
+</html>
